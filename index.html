@@ -2306,7 +2306,7 @@ function openDataSheet() {
     //  Gemini API 이미지 분석 기능
     // ════════════════════════════════════════════
 
-    const GEMINI_MODEL = 'gemini-1.5-flash-latest';
+    const GEMINI_MODEL = 'gemini-2.0-flash';
     const LS_KEY = 'ak_gemini_api_key';
 
     // 제미나이 젬 프롬프트 (기존 프롬프트 그대로 내장)
@@ -2506,7 +2506,7 @@ function openDataSheet() {
         status.className = 'analyze-status';
 
         try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
 
             const body = {
                 contents: [{
