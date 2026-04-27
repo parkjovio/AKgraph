@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>그래픽 보조 데스크 V 2.0</title>
+    <title>그래픽 보조 데스크 V 2.7</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -66,10 +66,16 @@
         #chart-container { height: 420px; margin-top: 0px; flex-shrink: 0; transition: height 0.3s ease; position: relative;}
         #pie-side-list { display: none; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 210px; z-index: 5; }
         .pie-side-list-inner { display: flex; flex-direction: column; gap: 10px; }
-        .pie-side-item { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
+        .pie-side-item { display: flex; align-items: flex-start; gap: 8px; min-width: 0; cursor: pointer; border-radius: 8px; padding: 4px; margin: -4px; transition: box-shadow 0.15s ease, background-color 0.15s ease; }
+        .pie-side-item:hover { box-shadow: 0 0 0 2px rgba(230,30,43,0.20); background-color: rgba(255,248,248,0.92); }
         .pie-side-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
         .pie-side-text { min-width: 0; color: #111; font-weight: 700; line-height: 1.3; letter-spacing: -0.4px; word-break: keep-all; overflow-wrap: anywhere; }
         .pie-side-text strong { font-weight: 900; }
+        .pie-side-label, .pie-side-value { display: inline-block; border-radius: 5px; padding: 1px 3px; margin: -1px -3px; transition: box-shadow 0.15s ease, background-color 0.15s ease; }
+        .pie-side-label { cursor: text; }
+        .pie-side-value { cursor: ns-resize; }
+        .pie-side-label:hover { box-shadow: 0 0 0 2px rgba(17,17,17,0.14); background: rgba(255,255,255,0.88); }
+        .pie-side-value:hover { box-shadow: 0 0 0 2px rgba(230,30,43,0.22); background: rgba(255,248,248,0.95); }
         #table-container { display: none; margin-top: 5px; margin-bottom: 0px; flex-grow: 1; height: auto; min-height: unset; }
         
         /* 일반 엑셀 표 */
@@ -131,12 +137,42 @@
         #undoBtn { letter-spacing: -0.03em; }
         .control-section { scroll-margin-top: 96px; }
         .panel-sticky-header .history-status { margin: 0; padding: 6px 8px; font-size: 11px; line-height: 1.25; }
-        .control-section { border: 1px solid #e1e4ea; border-radius: 12px; background: #fff; margin: 12px 0; overflow: hidden; }
+        .control-section { border: 1px solid #e1e4ea; border-radius: 12px; background: #fff; margin: 12px 0; overflow: hidden; transition: box-shadow 0.18s ease, border-color 0.18s ease, transform 0.18s ease; }
+        .control-section:hover { border-color: #cfd6e0; }
         .control-section[open] { box-shadow: 0 3px 10px rgba(0,0,0,0.04); }
-        .control-section summary { list-style: none; cursor: pointer; padding: 13px 14px; font-weight: 900; color: #222; background: #f8f9fb; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .control-section summary { list-style: none; cursor: pointer; padding: 13px 14px 13px 16px; font-weight: 900; color: #222; background: #f8f9fb; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-left: 6px solid transparent; transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease; }
         .control-section summary::-webkit-details-marker { display: none; }
-        .control-section summary::after { content: '펼치기'; font-size: 11px; color: #777; font-weight: 700; }
+        .control-section summary::after { content: '펼치기'; font-size: 11px; color: #777; font-weight: 800; padding: 4px 9px; border-radius: 999px; background: rgba(0,0,0,0.05); transition: background-color 0.18s ease, color 0.18s ease; }
         .control-section[open] summary::after { content: '접기'; color: var(--ak-red); }
+        .control-section[data-menu-key='input'] { --section-accent: #0056b3; --section-bg: #f0f6ff; --section-open-bg: #e2efff; --section-pill-bg: #dcebff; }
+        .control-section[data-menu-key='dataedit'] { --section-accent: #111111; --section-bg: #f5f5f5; --section-open-bg: #ededed; --section-pill-bg: #e2e2e2; }
+        .control-section[data-menu-key='design'] { --section-accent: var(--ak-red); --section-bg: #fff4f4; --section-open-bg: #ffeaea; --section-pill-bg: #ffdcdc; }
+        .control-section[data-menu-key='save'] { --section-accent: #2E7D32; --section-bg: #f1fbf2; --section-open-bg: #e4f7e7; --section-pill-bg: #d3efd8; }
+        .control-section[data-menu-key] summary { color: var(--section-accent); background: var(--section-bg); border-left-color: var(--section-accent); }
+        .control-section[data-menu-key] summary::after { color: var(--section-accent); background: var(--section-pill-bg); }
+        .control-section[data-menu-key][open] { border-color: var(--section-accent); box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
+        .control-section[data-menu-key][open] summary { background: var(--section-open-bg); }
+        .control-section[data-menu-key='input'][open] summary::after,
+        .control-section[data-menu-key='dataedit'][open] summary::after,
+        .control-section[data-menu-key='design'][open] summary::after,
+        .control-section[data-menu-key='save'][open] summary::after { color: var(--section-accent); }
+        .control-section-title { display: inline-flex; align-items: center; gap: 8px; min-width: 0; line-height: 1.2; }
+        .control-section-icon { width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; background: var(--section-accent, #777); font-size: 13px; box-shadow: 0 3px 8px rgba(0,0,0,0.14); }
+        .control-section-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .control-section.section-attention { animation: sectionAttention 1.05s ease; }
+        .control-section.section-attention summary { animation: sectionSummaryAttention 1.05s ease; }
+        @keyframes sectionAttention {
+            0% { transform: translateY(0); box-shadow: 0 3px 10px rgba(0,0,0,0.04); }
+            28% { transform: translateY(-2px); box-shadow: 0 0 0 4px var(--section-pill-bg), 0 10px 24px rgba(0,0,0,0.13); border-color: var(--section-accent); }
+            62% { transform: translateY(-1px); box-shadow: 0 0 0 3px var(--section-pill-bg), 0 8px 20px rgba(0,0,0,0.10); border-color: var(--section-accent); }
+            100% { transform: translateY(0); box-shadow: 0 3px 10px rgba(0,0,0,0.04); }
+        }
+        @keyframes sectionSummaryAttention {
+            0% { filter: brightness(1); }
+            28% { filter: brightness(0.97) saturate(1.12); }
+            62% { filter: brightness(0.99) saturate(1.08); }
+            100% { filter: brightness(1); }
+        }
         .control-section-body { padding: 14px; }
         .control-section-body > :first-child { margin-top: 0; }
         .menu-subhead { margin: 4px 0 10px; padding: 9px 10px; border-radius: 9px; background: #f6f7fb; border: 1px solid #e4e6ee; }
@@ -190,7 +226,16 @@
             .panel-sticky-header h2 { font-size: 17px; margin-bottom: 6px; }
             .panel-sticky-header .quick-btn { min-height: 34px; padding: 6px 4px; }
             .panel-sticky-header .history-status { font-size: 10px; padding: 5px 7px; }
-            .control-section summary { padding: 12px 12px; font-size: 14px; }
+            .control-section[data-menu-key='input'] { --section-bg: #e3f0ff; --section-open-bg: #cfe3ff; --section-pill-bg: #bdd8ff; }
+            .control-section[data-menu-key='dataedit'] { --section-bg: #eeeeee; --section-open-bg: #dcdcdc; --section-pill-bg: #d1d1d1; }
+            .control-section[data-menu-key='design'] { --section-bg: #ffe9e9; --section-open-bg: #ffd2d2; --section-pill-bg: #ffc1c1; }
+            .control-section[data-menu-key='save'] { --section-bg: #e5f7e7; --section-open-bg: #cdefd1; --section-pill-bg: #bde8c4; }
+            .control-section { margin: 10px 0; border-width: 2px; }
+            .control-section summary { padding: 13px 12px 13px 14px; font-size: 14px; border-left-width: 8px; }
+            .control-section[data-menu-key] summary { background: var(--section-bg); }
+            .control-section[open] summary { background: var(--section-open-bg); }
+            .control-section-icon { width: 28px; height: 28px; font-size: 15px; box-shadow: 0 3px 9px rgba(0,0,0,0.20); }
+            .control-section summary::after { font-size: 10.5px; padding: 5px 9px; background: #fff; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06); }
             .history-status { font-size: 11px; }
         }
     </style>
@@ -198,7 +243,7 @@
 <body>
 
     <div class="control-panel">
-        <h2>🛠️ 그래픽 보조 데스크 V 2.0</h2>
+        <h2>🛠️ 그래픽 보조 데스크 V 2.7</h2>
 
         <div class="quick-action-bar" id="quickActionBar">
             <button type="button" class="quick-btn" id="undoBtn" onclick="undoLastChange()" title="Ctrl+Z / Command+Z">되돌리기</button>
@@ -592,9 +637,9 @@
         <div id="capture-area">
             <div class="header-line" id="topLine"></div>
             
-            <h1 class="chart-title inline-editable" id="displayTitle" title="더블클릭해서 제목 직접 수정">제목입력</h1>
+            <h1 class="chart-title inline-editable" id="displayTitle" title="더블클릭해서 데이터 수정(제목 수정)">제목입력</h1>
             <br>
-            <span class="chart-subtitle inline-editable" id="displaySub" title="더블클릭해서 부제목 직접 수정">(단위 및 출처 입력)</span>
+            <span class="chart-subtitle inline-editable" id="displaySub" title="더블클릭해서 데이터 수정(부제목 수정)">(단위 및 출처 입력)</span>
             
             <div id="chart-container">
                 <canvas id="myChart"></canvas>
@@ -607,7 +652,7 @@
                         <button type="button" class="chart-quick-apply" id="chartQuickEditApply">적용</button>
                         <button type="button" class="chart-quick-close" id="chartQuickEditClose">×</button>
                     </div>
-                    <div class="chart-quick-edit-help">막대·점·원 조각에 마우스를 올린 뒤 값을 수정하고 Enter를 누르세요.</div>
+                    <div class="chart-quick-edit-help">데이터값 수정 · 더블클릭해서 데이터 수정: 막대·점·원그래프 숫자 줄은 데이터값, 그래프 위 범례는 데이터명을 더블클릭해 수정하세요.</div>
                 </div>
             </div>
 
@@ -620,14 +665,14 @@
                     <button type="button" class="chart-quick-apply" id="previewQuickEditApply">적용</button>
                     <button type="button" class="chart-quick-close" id="previewQuickEditClose">×</button>
                 </div>
-                <div class="chart-quick-edit-help">X축 항목·표 셀에 마우스를 올리면 안내가 뜹니다. 더블 클릭 후 수정하고 Enter를 누르세요.</div>
+                <div class="chart-quick-edit-help">항목명 수정 · 더블클릭해서 데이터 수정: X축 항목·표 셀·원그래프 라벨 안의 항목명 줄을 더블클릭해 수정하세요.</div>
             </div>
-            <div id="previewHoverHint" class="edit-hover-hint" data-html2canvas-ignore="true">더블 클릭해서 데이터 수정</div>
+            <div id="previewHoverHint" class="edit-hover-hint" data-html2canvas-ignore="true">더블클릭해서 데이터 수정</div>
             
-            <div id="displayFootnote" class="inline-editable" title="더블클릭해서 주석 직접 수정"></div>
+            <div id="displayFootnote" class="inline-editable" title="더블클릭해서 데이터 수정(주석 수정)"></div>
             
             <div class="footer-watermark">
-                그래픽&nbsp;&nbsp;<span id="displayName" class="inline-editable" title="더블클릭해서 기자 이름 직접 수정">박조비 기자</span>
+                그래픽&nbsp;&nbsp;<span id="displayName" class="inline-editable" title="더블클릭해서 데이터 수정(기자 이름 수정)">박조비 기자</span>
                 <img src="https://raw.githubusercontent.com/parkjovio/quiz-app/main/aklogo.png" alt="아시아경제 로고" class="as_logo_img" crossorigin="anonymous" onerror="this.style.display='none'">
             </div>
         </div>
@@ -639,6 +684,11 @@
     Chart.defaults.font.family = globalFont;
 
     let myChart = null;
+    const EDIT_HOVER_MESSAGE = '더블클릭해서 데이터 수정';
+    const ITEM_EDIT_HOVER_MESSAGE = '항목명 수정 · 더블클릭해서 데이터 수정';
+    const VALUE_EDIT_HOVER_MESSAGE = '데이터값 수정 · 더블클릭해서 데이터 수정';
+    const DATASET_NAME_EDIT_HOVER_MESSAGE = '데이터명 수정 · 더블클릭해서 데이터 수정';
+    const PIE_SPLIT_HOVER_MESSAGE = '항목명/데이터값 구분 · 더블클릭해서 데이터 수정';
 
     const PALETTE_PRESETS = {
         asiae: {
@@ -764,6 +814,9 @@
         if (options.scroll !== false && firstSection) {
             firstSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+        if (options.highlight !== false && firstSection) {
+            highlightControlSection(firstSection, options.scroll === false ? 0 : 220);
+        }
     }
 
     function closeQuickMenu(menuKey) {
@@ -794,6 +847,24 @@
         if (!section) return;
         section.open = true;
         section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        highlightControlSection(section, 220);
+    }
+
+    const CONTROL_SECTION_ICONS = {
+        input: '✍️',
+        dataedit: '📊',
+        design: '🎨',
+        save: '💾'
+    };
+
+    function highlightControlSection(section, delay = 0) {
+        if (!section) return;
+        window.setTimeout(() => {
+            section.classList.remove('section-attention');
+            void section.offsetWidth;
+            section.classList.add('section-attention');
+            window.setTimeout(() => section.classList.remove('section-attention'), 1150);
+        }, delay);
     }
 
     function createControlSection(id, summaryText, open = false, menuKey = '') {
@@ -803,7 +874,21 @@
         if (menuKey) details.dataset.menuKey = menuKey;
         if (open) details.open = true;
         const summary = document.createElement('summary');
-        summary.textContent = summaryText;
+        const titleWrap = document.createElement('span');
+        titleWrap.className = 'control-section-title';
+
+        const icon = document.createElement('span');
+        icon.className = 'control-section-icon';
+        icon.setAttribute('aria-hidden', 'true');
+        icon.textContent = CONTROL_SECTION_ICONS[menuKey] || '•';
+
+        const label = document.createElement('span');
+        label.className = 'control-section-label';
+        label.textContent = summaryText;
+
+        titleWrap.appendChild(icon);
+        titleWrap.appendChild(label);
+        summary.appendChild(titleWrap);
         const body = document.createElement('div');
         body.className = 'control-section-body';
         details.appendChild(summary);
@@ -1215,6 +1300,79 @@
         return text.split(',').map(item => item.trim());
     }
 
+    function buildChartLabelEditState(labelIndex, title = 'X축 항목명 수정') {
+        const labels = (myChart && myChart.data && Array.isArray(myChart.data.labels)) ? myChart.data.labels : [];
+        if (labelIndex < 0 || labels[labelIndex] === undefined) return null;
+        const currentLabel = String(labels[labelIndex] ?? '');
+        return {
+            kind: 'chart-label',
+            labelIndex,
+            value: currentLabel,
+            title,
+            sub: `항목 ${labelIndex + 1} · 현재 항목명`
+        };
+    }
+
+    function buildDatasetNameEditState(datasetIndex, title = '데이터명 수정') {
+        if (!myChart || !myChart.data || !Array.isArray(myChart.data.datasets)) return null;
+        const dataset = myChart.data.datasets[datasetIndex];
+        if (!dataset) return null;
+        const sourceInputIndex = dataset._sourceInputIndex || (datasetIndex + 1);
+        const nameInput = document.getElementById('dataName' + sourceInputIndex);
+        const currentName = (nameInput ? nameInput.value : dataset.label) || dataset.label || `데이터 ${sourceInputIndex}`;
+        return {
+            kind: 'dataset-name',
+            datasetIndex,
+            sourceInputIndex,
+            value: currentName,
+            title,
+            sub: `데이터 ${sourceInputIndex} 이름 · 현재 데이터명`
+        };
+    }
+
+    function getChartLegendNameHitFromEvent(event) {
+        if (!myChart || !myChart.legend || !myChart.data || !Array.isArray(myChart.data.datasets)) return null;
+        const legend = myChart.legend;
+        const hitBoxes = Array.isArray(legend.legendHitBoxes) ? legend.legendHitBoxes : [];
+        const legendItems = Array.isArray(legend.legendItems) ? legend.legendItems : [];
+        if (!hitBoxes.length || !legendItems.length) return null;
+
+        const canvas = myChart.canvas || document.getElementById('myChart');
+        if (!canvas) return null;
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        for (let i = 0; i < hitBoxes.length; i++) {
+            const box = hitBoxes[i];
+            if (!box) continue;
+            const left = box.left ?? box.x ?? 0;
+            const top = box.top ?? box.y ?? 0;
+            const width = box.width ?? 0;
+            const height = box.height ?? 0;
+            const padX = 8;
+            const padY = 6;
+            if (x < left - padX || x > left + width + padX || y < top - padY || y > top + height + padY) continue;
+
+            const item = legendItems[i] || {};
+            const datasetIndex = Number.isInteger(item.datasetIndex) ? item.datasetIndex : i;
+            const state = buildDatasetNameEditState(datasetIndex, '데이터명 수정');
+            if (!state) return null;
+            return { ...state, bounds: { left, top, width, height } };
+        }
+
+        return null;
+    }
+
+    function focusPreviewQuickEditInput() {
+        const previewInput = document.getElementById('previewQuickEditInput');
+        if (!previewInput) return;
+        setTimeout(() => {
+            previewInput.focus();
+            previewInput.select();
+        }, 0);
+    }
+
     function getChartLabelHitFromEvent(event) {
         if (!myChart || !myChart.scales || !myChart.data || !Array.isArray(myChart.data.labels)) return null;
         const labels = myChart.data.labels;
@@ -1225,7 +1383,12 @@
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
         const chartType = document.getElementById('chartType')?.value || '';
-        if (chartType === 'pie') return null;
+        if (chartType === 'pie') {
+            const pieTarget = getPieDataLabelTargetFromEvent(event);
+            return pieTarget && pieTarget.editKind === 'label'
+                ? buildChartLabelEditState(pieTarget.hit.index, '원그래프 항목명 수정')
+                : null;
+        }
         const isHorizontal = chartType.startsWith('h-');
         const scale = isHorizontal ? myChart.scales.y : myChart.scales.x;
         if (!scale || typeof scale.getPixelForTick !== 'function') return null;
@@ -1256,13 +1419,7 @@
             : 70;
         const threshold = Math.max(18, Math.min(90, stepPixels * 0.48));
         if (nearestIndex < 0 || nearestDistance > threshold) return null;
-        return {
-            kind: 'chart-label',
-            labelIndex: nearestIndex,
-            value: String(labels[nearestIndex] ?? ''),
-            title: 'X축 항목 빠른 수정',
-            sub: `항목 ${nearestIndex + 1}`
-        };
+        return buildChartLabelEditState(nearestIndex, 'X축 항목명 수정');
     }
 
     let previewQuickEditState = null;
@@ -1297,7 +1454,7 @@
         hint.style.top = top + 'px';
     }
 
-    function showPreviewHoverHint(event, message = '더블 클릭해서 데이터 수정') {
+    function showPreviewHoverHint(event, message = EDIT_HOVER_MESSAGE) {
         const hint = document.getElementById('previewHoverHint');
         const editor = document.getElementById('previewQuickEdit');
         const input = document.getElementById('previewQuickEditInput');
@@ -1352,7 +1509,9 @@
             kind: state.kind,
             labelIndex: state.labelIndex,
             rowIndex: state.rowIndex,
-            colIndex: state.colIndex
+            colIndex: state.colIndex,
+            datasetIndex: state.datasetIndex,
+            sourceInputIndex: state.sourceInputIndex
         });
         title.textContent = state.title || '미리보기 빠른 수정';
         sub.textContent = state.sub || '';
@@ -1398,6 +1557,17 @@
             labelsInput.value = labels.join(', ');
             updateOutput();
             recordHistoryCheckpoint('X축 항목 직접 수정');
+            hidePreviewQuickEditor(true);
+            hidePreviewHoverHint();
+            return;
+        }
+
+        if (previewQuickEditState.kind === 'dataset-name') {
+            const targetInput = document.getElementById('dataName' + previewQuickEditState.sourceInputIndex);
+            if (!targetInput) return;
+            targetInput.value = valueText;
+            updateOutput();
+            recordHistoryCheckpoint('그래프 위 데이터명 직접 수정');
             hidePreviewQuickEditor(true);
             hidePreviewHoverHint();
             return;
@@ -1449,7 +1619,7 @@
                 schedulePreviewHoverHintHide(80);
                 return;
             }
-            showPreviewHoverHint(event, '더블 클릭해서 데이터 수정');
+            showPreviewHoverHint(event, EDIT_HOVER_MESSAGE);
         });
 
         tableContainer.addEventListener('dblclick', (event) => {
@@ -1558,6 +1728,103 @@
         return hit;
     }
 
+
+    function getPieDataLabelTargetFromEvent(event) {
+        const chartType = document.getElementById('chartType')?.value || '';
+        if (chartType !== 'pie' || !myChart) return null;
+
+        const hit = getChartHitFromEvent(event);
+        if (!hit) return null;
+
+        const dataset = myChart.data.datasets[hit.datasetIndex] || {};
+        const context = {
+            chart: myChart,
+            dataset,
+            datasetIndex: hit.datasetIndex,
+            dataIndex: hit.index
+        };
+
+        if (getPieRatio(context) <= 0 || getPieIsOutside(context)) return null;
+
+        const meta = myChart.getDatasetMeta(hit.datasetIndex);
+        const arc = meta && meta.data ? meta.data[hit.index] : null;
+        if (!arc) return null;
+
+        const position = typeof arc.tooltipPosition === 'function'
+            ? arc.tooltipPosition()
+            : { x: arc.x, y: arc.y };
+        if (!position || !Number.isFinite(position.x) || !Number.isFinite(position.y)) return null;
+
+        const canvas = myChart.canvas || document.getElementById('myChart');
+        if (!canvas) return null;
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        const label = (myChart.data.labels && myChart.data.labels[hit.index]) ? String(myChart.data.labels[hit.index]).trim() : '';
+        const rawValue = Array.isArray(dataset.data) ? dataset.data[hit.index] : '';
+        const isKoreanNumber = document.getElementById('koreanNumberType') && document.getElementById('koreanNumberType').value === 'apply';
+        const subText = document.getElementById('subInput') ? document.getElementById('subInput').value : '';
+        const displayValue = String(isKoreanNumber ? formatKoreanNumber(rawValue, subText) : rawValue);
+        const labelLines = label ? wrapPieInsideLabel(label, 11, 4).split('\n').filter(Boolean) : [];
+        const lines = labelLines.concat([displayValue]);
+        if (!lines.length) return null;
+
+        const datasetFontSize = getDatasetLabelFontSize(hit.datasetIndex);
+        const fontConfig = getPieFont(context, datasetFontSize / 18);
+        const fontSize = Number(fontConfig.size) || datasetFontSize || 18;
+        const lineHeight = Math.max(16, Math.round(fontSize * 1.25));
+        const paddingX = 10;
+        const paddingY = 6;
+
+        const ctx = myChart.ctx;
+        let maxWidth = 0;
+        if (ctx && typeof ctx.measureText === 'function') {
+            ctx.save();
+            ctx.font = `${fontConfig.weight || '900'} ${fontSize}px ${globalFont || 'sans-serif'}`;
+            lines.forEach(line => {
+                const width = ctx.measureText(String(line)).width;
+                if (width > maxWidth) maxWidth = width;
+            });
+            ctx.restore();
+        } else {
+            maxWidth = Math.max(...lines.map(line => String(line).length * fontSize * 0.62));
+        }
+
+        const textHeight = lineHeight * lines.length;
+        const left = position.x - (maxWidth / 2) - paddingX;
+        const right = position.x + (maxWidth / 2) + paddingX;
+        const top = position.y - (textHeight / 2) - paddingY;
+        const bottom = position.y + (textHeight / 2) + paddingY;
+
+        if (x < left || x > right || y < top || y > bottom) return null;
+
+        const innerTop = position.y - (textHeight / 2);
+        const rawLineIndex = Math.floor((y - innerTop) / lineHeight);
+        const lineIndex = Math.max(0, Math.min(lines.length - 1, rawLineIndex));
+        const valueLineIndex = Math.max(0, lines.length - 1);
+        const editKind = (lineIndex >= valueLineIndex || labelLines.length === 0) ? 'value' : 'label';
+
+        return {
+            hit,
+            editKind,
+            lineIndex,
+            label,
+            rawValue,
+            displayValue,
+            bounds: { left, right, top, bottom }
+        };
+    }
+
+    function focusChartQuickEditInput() {
+        const input = document.getElementById('chartQuickEditInput');
+        if (!input) return;
+        setTimeout(() => {
+            input.focus();
+            input.select();
+        }, 0);
+    }
+
     function positionChartQuickEditor(editor, event) {
         const container = document.getElementById('chart-container');
         if (!container || !editor) return;
@@ -1591,8 +1858,9 @@
         const rawValue = Array.isArray(dataset.data) ? dataset.data[hit.index] : '';
         const stateKey = sourceInputIndex + '|' + hit.datasetIndex + '|' + hit.index;
 
-        title.textContent = label;
-        sub.textContent = datasetName + ' · 현재값 ' + formatQuickEditValue(rawValue);
+        const currentChartType = document.getElementById('chartType')?.value || '';
+        title.textContent = (currentChartType === 'pie' ? '원그래프 숫자 수정' : '데이터값 수정') + ' · ' + label;
+        sub.textContent = datasetName + ' · 현재 데이터값 ' + formatQuickEditValue(rawValue);
         if (!chartQuickEditState || chartQuickEditState.key !== stateKey) {
             input.value = formatQuickEditValue(rawValue);
         }
@@ -1633,6 +1901,62 @@
         hideChartQuickEditor(true);
     }
 
+    function setupPieSideListQuickEditing() {
+        const pieSideList = document.getElementById('pie-side-list');
+        if (!pieSideList || pieSideList.dataset.pieEditReady === 'true') return;
+
+        const getTarget = (event) => {
+            const target = event.target && event.target.closest ? event.target.closest('.pie-side-item[data-pie-edit-index]') : null;
+            return target && pieSideList.contains(target) ? target : null;
+        };
+
+        pieSideList.addEventListener('mousemove', (event) => {
+            const target = getTarget(event);
+            if (!target) {
+                schedulePreviewHoverHintHide(80);
+                return;
+            }
+            hidePreviewQuickEditor(true);
+            const isValueTarget = !!(event.target && event.target.closest && event.target.closest('.pie-side-value'));
+            const isLabelTarget = !!(event.target && event.target.closest && event.target.closest('.pie-side-label'));
+            const hoverMessage = isValueTarget ? VALUE_EDIT_HOVER_MESSAGE : (isLabelTarget ? ITEM_EDIT_HOVER_MESSAGE : PIE_SPLIT_HOVER_MESSAGE);
+            showPreviewHoverHint(event, hoverMessage);
+        });
+
+        pieSideList.addEventListener('dblclick', (event) => {
+            const target = getTarget(event);
+            if (!target) return;
+            const dataIndex = parseInt(target.dataset.pieEditIndex, 10);
+            if (Number.isNaN(dataIndex)) return;
+
+            hidePreviewHoverHint();
+            if (event.target && event.target.closest && event.target.closest('.pie-side-value')) {
+                showChartQuickEditor(event, { datasetIndex: 0, index: dataIndex });
+                const input = document.getElementById('chartQuickEditInput');
+                if (input) {
+                    setTimeout(() => {
+                        input.focus();
+                        input.select();
+                    }, 0);
+                }
+                return;
+            }
+
+            hideChartQuickEditor(true);
+            const labelState = buildChartLabelEditState(dataIndex, '원그래프 항목명 수정');
+            if (!labelState) return;
+            showPreviewQuickEditor(event, labelState);
+            focusPreviewQuickEditInput();
+        });
+
+        pieSideList.addEventListener('mouseleave', () => {
+            schedulePreviewHoverHintHide(80);
+            scheduleChartQuickEditorHide(450);
+        });
+
+        pieSideList.dataset.pieEditReady = 'true';
+    }
+
     function setupChartQuickEditing() {
         const canvas = document.getElementById('myChart');
         const editor = document.getElementById('chartQuickEdit');
@@ -1646,27 +1970,83 @@
             if (type === 'table' || type === 'list' || type === 'timeline') {
                 hideChartQuickEditor(true);
                 hidePreviewHoverHint();
+                canvas.style.cursor = '';
                 return;
             }
+
+            if (type === 'pie') {
+                const pieTarget = getPieDataLabelTargetFromEvent(event);
+                if (pieTarget) {
+                    hideChartQuickEditor(true);
+                    hidePreviewQuickEditor(true);
+                    canvas.style.cursor = pieTarget.editKind === 'value' ? 'ns-resize' : 'text';
+                    showPreviewHoverHint(event, pieTarget.editKind === 'value' ? VALUE_EDIT_HOVER_MESSAGE : ITEM_EDIT_HOVER_MESSAGE);
+                    return;
+                }
+                canvas.style.cursor = '';
+                scheduleChartQuickEditorHide(350);
+                schedulePreviewHoverHintHide(80);
+                return;
+            }
+
+            const legendHit = getChartLegendNameHitFromEvent(event);
+            if (legendHit) {
+                hideChartQuickEditor(true);
+                hidePreviewQuickEditor(true);
+                canvas.style.cursor = 'text';
+                showPreviewHoverHint(event, DATASET_NAME_EDIT_HOVER_MESSAGE);
+                return;
+            }
+
             const hit = getChartHitFromEvent(event);
             if (!hit) {
                 const labelHit = getChartLabelHitFromEvent(event);
                 if (labelHit) {
                     hideChartQuickEditor(true);
-                    showPreviewHoverHint(event, '더블 클릭해서 데이터 수정');
+                    canvas.style.cursor = 'text';
+                    showPreviewHoverHint(event, EDIT_HOVER_MESSAGE);
                     return;
                 }
+                canvas.style.cursor = '';
                 scheduleChartQuickEditorHide(350);
                 schedulePreviewHoverHintHide(80);
                 return;
             }
+            canvas.style.cursor = 'ns-resize';
             hidePreviewHoverHint();
             hidePreviewQuickEditor(true);
             showChartQuickEditor(event, hit);
         });
 
-        canvas.addEventListener('mouseleave', () => { scheduleChartQuickEditorHide(450); schedulePreviewHoverHintHide(80); });
+        canvas.addEventListener('mouseleave', () => { canvas.style.cursor = ''; scheduleChartQuickEditorHide(450); schedulePreviewHoverHintHide(80); });
         canvas.addEventListener('dblclick', (event) => {
+            const type = document.getElementById('chartType')?.value || '';
+            if (type === 'pie') {
+                const pieTarget = getPieDataLabelTargetFromEvent(event);
+                if (!pieTarget) return;
+                hidePreviewHoverHint();
+                if (pieTarget.editKind === 'value') {
+                    hidePreviewQuickEditor(true);
+                    showChartQuickEditor(event, pieTarget.hit);
+                    focusChartQuickEditInput();
+                    return;
+                }
+                hideChartQuickEditor(true);
+                const labelState = buildChartLabelEditState(pieTarget.hit.index, '원그래프 항목명 수정');
+                if (!labelState) return;
+                showPreviewQuickEditor(event, labelState);
+                focusPreviewQuickEditInput();
+                return;
+            }
+
+            const legendHit = getChartLegendNameHitFromEvent(event);
+            if (legendHit) {
+                hideChartQuickEditor(true);
+                showPreviewQuickEditor(event, legendHit);
+                focusPreviewQuickEditInput();
+                return;
+            }
+
             if (editor.style.display !== 'none') {
                 input.focus();
                 input.select();
@@ -1675,13 +2055,7 @@
             const labelHit = getChartLabelHitFromEvent(event);
             if (labelHit) {
                 showPreviewQuickEditor(event, labelHit);
-                const previewInput = document.getElementById('previewQuickEditInput');
-                if (previewInput) {
-                    setTimeout(() => {
-                        previewInput.focus();
-                        previewInput.select();
-                    }, 0);
-                }
+                focusPreviewQuickEditInput();
             }
         });
 
@@ -1867,6 +2241,7 @@
 
         const total = values.reduce((sum, value) => sum + (Number(value) || 0), 0);
         const items = labels.map((label, index) => ({
+            index,
             label: (label || '').trim(),
             rawValue: Number(values[index]) || 0,
             ratio: total > 0 ? (Number(values[index]) || 0) / total : 0,
@@ -1890,10 +2265,10 @@
                 ${items.map(item => {
                     const displayValue = isKoreanNumber ? formatKoreanNumber(item.rawValue, subText) : item.rawValue;
                     return `
-                        <div class="pie-side-item">
+                        <div class="pie-side-item preview-editable-target" data-pie-edit-index="${item.index}" title="${PIE_SPLIT_HOVER_MESSAGE}" aria-label="${PIE_SPLIT_HOVER_MESSAGE}">
                             <span class="pie-side-dot" style="background:${item.color};"></span>
                             <div class="pie-side-text" style="font-size:${itemFontSize}px;">
-                                ${item.label ? `${item.label} <strong>${displayValue}</strong>` : `<strong>${displayValue}</strong>`}
+                                ${item.label ? `<span class="pie-side-label" title="${ITEM_EDIT_HOVER_MESSAGE}" aria-label="${ITEM_EDIT_HOVER_MESSAGE}">${escapeHtml(item.label)}</span> <strong class="pie-side-value" title="${VALUE_EDIT_HOVER_MESSAGE}" aria-label="${VALUE_EDIT_HOVER_MESSAGE}">${escapeHtml(displayValue)}</strong>` : `<strong class="pie-side-value" title="${VALUE_EDIT_HOVER_MESSAGE}" aria-label="${VALUE_EDIT_HOVER_MESSAGE}">${escapeHtml(displayValue)}</strong>`}
                             </div>
                         </div>
                     `;
@@ -3100,7 +3475,8 @@ function openDataSheet() {
                         display: (normType === 'multi-line' || normType === 'combo' || normType === 'multi-combo' || normType === 'multi-bar' || normType === 'stacked-combo' || normType === 'stacked-bar'),
                         position: 'top', align: 'end',
                         labels: { font: { size: Math.round(16 * scale), weight: 'bold' }, color: '#111' },
-                        padding: { bottom: 25 }
+                        padding: { bottom: 25 },
+                        onClick: function() {}
                     },
                     tooltip: { enabled: false },
                     datalabels: {
@@ -3468,6 +3844,7 @@ function openDataSheet() {
         setupInlineEditing();
         setupChartQuickEditing();
         setupPreviewQuickEditing();
+        setupPieSideListQuickEditing();
         updateFavoriteSelect();
         applyPalettePreset('asiae', { skipUpdate: true, skipHistory: true });
         const initialType = document.getElementById('chartType').value;
